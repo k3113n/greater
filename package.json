@@ -2,7 +2,7 @@
   "name": "greater",
   "version": "1.0.0",
   "author": "k3113n",
-  "license":"UNLICENSE",
+  "license":"Unlicense",
   "dependencies": {
     "ws": "^8.14.2"
   },
