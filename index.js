@@ -1,4 +1,4 @@
-let server = new (require('ws')).Server({port: 10000}),
+let server = new (require('ws')).Server({port: 443}),
     sockets = {},
     a = 0;
 
