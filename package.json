@@ -4,7 +4,7 @@
   "author": "k3113n",
   "license":"Unlicense",
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=20.4.0"
   },
   "dependencies": {
     "ws": "^8.14.2"
