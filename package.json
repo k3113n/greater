@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "author": "k3113n",
   "license":"Unlicense",
+  "engines": {
+    "node": ">=14.17.0"
+  },
   "dependencies": {
     "ws": "^8.14.2"
   },
