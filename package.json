@@ -2,7 +2,7 @@
   "name": "greater",
   "version": "1.0.0",
   "author": "k3113n",
-  "license":"Unlicense",
+  "license": "Unlicense",
   "engines": {
     "node": ">=20.4.0"
   },

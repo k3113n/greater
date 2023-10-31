@@ -1,6 +1,6 @@
 let server = new (require('ws')).Server({port: 443}),
     sockets = {},
-    a = 0;
+    a = process.env.COUNT || 0;
 
 server.on('connection', function (socket) {
     let user = crypto.randomUUID();
@@ -24,5 +24,16 @@ server.on('connection', function (socket) {
 
     socket.on('close', function () {
         delete sockets[user];
+        if (isEmpty(sockets)) process.env.COUNT = a;
     });
 });
+
+
+
+const isEmpty = (variable) => {
+    return (
+      variable &&
+      Object.keys(variable).length === 0 &&
+      variable.constructor === Object
+    );
+};
