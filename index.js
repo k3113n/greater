@@ -1,26 +1,39 @@
-const google = require('googleapis');
+require('dotenv').config();
+const {google} = require('googleapis');
+const {GoogleAuth} = require("google-auth-library");
+
+const sheets = google.sheets('v4');
 
 const readDB = async () => {
-    const sheets = google.sheets({ 
-        version: 'v4',
-        auth: new google.auth.GoogleAuth({
-            keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-        }),
-    });
-    const response = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE});
-    return Number(response.data.values[0][0]) || 0
+    try{
+        const response = await sheets.spreadsheets.values.get({ 
+            auth: new GoogleAuth({
+                keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
+            spreadsheetId: process.env.DB_KEY, 
+            range: process.env.RANGE
+        });
+        return Number(await response.data.values[0][0]);
+    } catch(err) {
+        console.log("Error: " + err);
+        return 0;
+    }
 }
 
 const writeDB = async (value) => {
-    const sheets = google.sheets({ 
-        version: 'v4',
-        auth: new google.auth.GoogleAuth({
-            keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-        }),
-    });
-    const response = await sheets.spreadsheets.values.update({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE, valueInputOption: 'RAW', resource: {values: [[value.toString()]]}});
+    try{
+        const response = await sheets.spreadsheets.values.update({ 
+            auth: new GoogleAuth({
+                keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
+            spreadsheetId: process.env.DB_KEY, 
+            range: process.env.RANGE,
+            valueInputOption: 'RAW', 
+            resource: {values: [[value]]}
+        });
+    } catch(err) {
+        console.log("Error: " + err);
+    }
 }
 
 const isEmpty = (variable) => {
@@ -31,32 +44,33 @@ const isEmpty = (variable) => {
     );
 };
 
-let server = new (require('ws')).Server({port: 443}),
-    sockets = {},
-    a = readDB().then(() => {
-        server.on('connection', function (socket) {
-            let user = crypto.randomUUID();
-            sockets[user] = socket;
-            socket.send(a);
-        
-            socket.on('message', function (message) {
-                let b = Number(message);
-                if(!isNaN(b)) {
-                    if(a < b){
-                        a = b;      
-                        for(const [i, s] of Object.entries(sockets)) {
-                            if(i != user) s.send(a.toString());
-                        }
-                    } 
-                    if(a > b) {
-                        socket.send(a.toString());
+
+readDB().then((a) => {
+    let server = new (require('ws')).Server({port: 443}),
+    sockets = {};    
+    server.on('connection', function (socket) {
+        let user = crypto.randomUUID();
+        sockets[user] = socket;
+        socket.send(a);
+
+        socket.on('message', function (message) {
+            let b = Number(message);
+            if(!isNaN(b)) {
+                if(a < b){
+                    a = b;      
+                    for(const [i, s] of Object.entries(sockets)) {
+                        if(i != user) s.send(a.toString());
                     }
+                } 
+                if(a > b) {
+                    socket.send(a.toString());
                 }
-            });
-        
-            socket.on('close', function () {
-                delete sockets[user];
-                if (isEmpty(sockets)) writeDB(a);
-            });
+            }
+        });
+
+        socket.on('close', function () {
+            delete sockets[user];
+            if (isEmpty(sockets)) writeDB(a);
         });
     });
+});
