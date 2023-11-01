@@ -1,6 +1,5 @@
-const google = require('googleapis');
-
 const readDB = async () => {
+    const google = require('googleapis');
     const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE});
@@ -8,6 +7,7 @@ const readDB = async () => {
 }
 
 const writeDB = async (value) => {
+    const google = require('googleapis');
     const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.update({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE, valueInputOption: 'RAW', resource: {values: [[value.toString()]]}});
