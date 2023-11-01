@@ -7,6 +7,8 @@
     "node": ">=20.4.0"
   },
   "dependencies": {
+    "google-auth-library": "^9.2.0",
+    "googleapis": "^128.0.0",
     "ws": "^8.14.2"
   },
   "scripts": {

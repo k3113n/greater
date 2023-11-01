@@ -1,6 +1,8 @@
+import { google } from 'googleapis';
+
 let server = new (require('ws')).Server({port: 443}),
     sockets = {},
-    a = process.env.COUNT || 0;
+    a = await readDB();
 
 server.on('connection', function (socket) {
     let user = crypto.randomUUID();
@@ -24,11 +26,22 @@ server.on('connection', function (socket) {
 
     socket.on('close', function () {
         delete sockets[user];
-        if (isEmpty(sockets)) process.env.COUNT = a;
+        if (isEmpty(sockets)) writeDB(a);
     });
 });
 
+const readDB = async () => {
+    const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE});
+    return Number(response.data.values[0][0]) || 0
+}
 
+const writeDB = async (value) => {
+    const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.update({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE, valueInputOption: 'RAW', resource: {values: [[value.toString()]]}});
+}
 
 const isEmpty = (variable) => {
     return (
