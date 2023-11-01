@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+const google = require('googleapis');
 
 let server = new (require('ws')).Server({port: 443}),
     sockets = {},
