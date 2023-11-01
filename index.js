@@ -1,5 +1,26 @@
 const google = require('googleapis');
 
+const readDB = async () => {
+    const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE});
+    return Number(response.data.values[0][0]) || 0
+}
+
+const writeDB = async (value) => {
+    const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.update({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE, valueInputOption: 'RAW', resource: {values: [[value.toString()]]}});
+}
+
+const isEmpty = (variable) => {
+    return (
+      variable &&
+      Object.keys(variable).length === 0 &&
+      variable.constructor === Object
+    );
+};
+
 let server = new (require('ws')).Server({port: 443}),
     sockets = {},
     a = readDB().then(() => {
@@ -29,26 +50,3 @@ let server = new (require('ws')).Server({port: 443}),
             });
         });
     });
-
-
-
-const readDB = async () => {
-    const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
-    const sheets = google.sheets({ version: 'v4', auth });
-    const response = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE});
-    return Number(response.data.values[0][0]) || 0
-}
-
-const writeDB = async (value) => {
-    const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
-    const sheets = google.sheets({ version: 'v4', auth });
-    const response = await sheets.spreadsheets.values.update({ spreadsheetId: process.env.DB_KEY, range: process.env.RANGE, valueInputOption: 'RAW', resource: {values: [[value.toString()]]}});
-}
-
-const isEmpty = (variable) => {
-    return (
-      variable &&
-      Object.keys(variable).length === 0 &&
-      variable.constructor === Object
-    );
-};
