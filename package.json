@@ -4,7 +4,7 @@
   "author": "k3113n",
   "license": "Unlicense",
   "engines": {
-    "node": ">=20.4.0"
+    "node": ">=20.9.0"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
