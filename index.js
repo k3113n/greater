@@ -2,33 +2,35 @@ const google = require('googleapis');
 
 let server = new (require('ws')).Server({port: 443}),
     sockets = {},
-    a = await readDB();
-
-server.on('connection', function (socket) {
-    let user = crypto.randomUUID();
-    sockets[user] = socket;
-    socket.send(a);
-
-    socket.on('message', function (message) {
-        let b = Number(message);
-        if(!isNaN(b)) {
-            if(a < b){
-                a = b;      
-                for(const [i, s] of Object.entries(sockets)) {
-                    if(i != user) s.send(a.toString());
+    a = readDB().then(() => {
+        server.on('connection', function (socket) {
+            let user = crypto.randomUUID();
+            sockets[user] = socket;
+            socket.send(a);
+        
+            socket.on('message', function (message) {
+                let b = Number(message);
+                if(!isNaN(b)) {
+                    if(a < b){
+                        a = b;      
+                        for(const [i, s] of Object.entries(sockets)) {
+                            if(i != user) s.send(a.toString());
+                        }
+                    } 
+                    if(a > b) {
+                        socket.send(a.toString());
+                    }
                 }
-            } 
-            if(a > b) {
-                socket.send(a.toString());
-            }
-        }
+            });
+        
+            socket.on('close', function () {
+                delete sockets[user];
+                if (isEmpty(sockets)) writeDB(a);
+            });
+        });
     });
 
-    socket.on('close', function () {
-        delete sockets[user];
-        if (isEmpty(sockets)) writeDB(a);
-    });
-});
+
 
 const readDB = async () => {
     const auth = await google.auth.getClient({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
