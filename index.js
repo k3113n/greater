@@ -46,7 +46,7 @@ const isEmpty = (variable) => {
 
 
 readDB().then((a) => {
-    let server = new (require('ws')).Server({port: 80}),
+    let server = new (require('ws')).Server({port: 443}),
     sockets = {};    
     server.on('connection', function (socket) {
         let user = crypto.randomUUID();
