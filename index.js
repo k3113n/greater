@@ -11,7 +11,7 @@ const readDB = async () => {
                 keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
             spreadsheetId: process.env.DB_KEY, 
-            range: process.env.RANGE
+            range: process.env.COUNT
         });
         return Number(await response.data.values[0][0]);
     } catch(err) {
@@ -27,12 +27,28 @@ const writeDB = async (value) => {
                 keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
             spreadsheetId: process.env.DB_KEY, 
-            range: process.env.RANGE,
+            range: process.env.COUNT,
             valueInputOption: 'RAW', 
             resource: {values: [[value]]}
         });
     } catch(err) {
         console.log("Error: " + err);
+    }
+}
+
+const logDB = async (value) => {
+    try{
+        const response = await sheets.spreadsheets.values.append({ 
+            auth: new GoogleAuth({
+                keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
+            spreadsheetId: process.env.DB_KEY, 
+            range: process.env.LOG,
+            valueInputOption: 'RAW', 
+            resource: {values: [[new Date(), value]]}
+        });
+    } catch(err) {
+        console.log("Error: "+error);
     }
 }
 
@@ -48,10 +64,13 @@ const isEmpty = (variable) => {
 readDB().then((a) => {
     let server = new (require('ws')).Server({port: 443}),
     sockets = {};    
-    server.on('connection', function (socket) {
+    server.on('connection', function (socket, req) {
         let user = crypto.randomUUID();
         sockets[user] = socket;
         socket.send(a);
+
+        let client = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        logDB(client);
 
         socket.on('message', function (message) {
             let b = Number(message);
