@@ -52,6 +52,15 @@ const logDB = async (value) => {
     }
 }
 
+const isEmpty = (variable) => {
+    return (
+      variable &&
+      Object.keys(variable).length === 0 &&
+      variable.constructor === Object
+    );
+};
+
+
 readDB().then((a) => {
     let server = new (require('ws')).Server({port: 443}),
     sockets = {};    
@@ -80,6 +89,7 @@ readDB().then((a) => {
 
         socket.on('close', function () {
             delete sockets[user];
+            if (isEmpty(sockets)) writeDB(a);
         });
     });
 });
